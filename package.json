@@ -1,0 +1,61 @@
+{
+  "name": "zynith",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "main": "lib/api/index.js",
+  "types": "lib/api/index.d.ts",
+  "scripts": {
+    "dev": "vite",
+    "start": "npm run database & npm run website",
+    "website": "cd ./lib/web && http-server -o .",
+    "database": "cd ./lib/api/api && bun ./runner.js",
+    "build": "npm run build-tsc && npm run build-vite",
+    "build-tsc": "tsc && rm -rf ./lib/api/web && rm -rf ./lib/api/main.js",
+    "build-vite": "vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/soul-filament/zynith.git"
+  },
+  "author": {
+    "name": "Soul",
+    "email": "opensource@aerrobert.com",
+    "url": "https://github.com/soul-filament"
+  },
+  "dependencies": {
+    "@heroicons/react": "^2.1.1",
+    "@tailwindcss/typography": "^0.5.10",
+    "autoprefixer": "^10.4.16",
+    "chart.js": "^4.4.1",
+    "chartjs-adapter-moment": "^1.0.1",
+    "colors": "^1.4.0",
+    "flowbite-react": "^0.7.2",
+    "http-server": "^14.1.1",
+    "react": "^18.2.0",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.21.1",
+    "recoil": "^0.7.7",
+    "sqlite3": "^5.1.6",
+    "tailwindcss": "^3.4.0",
+    "tailwindcss-animate": "^1.0.7",
+    "ws": "^8.15.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@types/ws": "^8.5.10",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "eslint": "^8.55.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.5",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.8"
+  }
+}
