@@ -24,5 +24,6 @@ lib
 *.sln
 *.sw?
 
-
+coverage
 zynith.sqlite
+.env

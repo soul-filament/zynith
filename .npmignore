@@ -5,6 +5,6 @@ tsconfig.json
 tsconfig.node.json
 vite.config.ts
 zynith.sqlite
-index.html
 postcss.config.js
 readme.md
+.eslintrc.cjs

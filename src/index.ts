@@ -21,8 +21,10 @@ export class Zynith {
     public constructor (config: Partial<ZynithConfig> = {}) {
 
         this.config = {
-            sqlite_filename: config.sqlite_filename || process.env.ZYNITH_SQLITE_FILENAME || (__dirname + '/../../zynith.sqlite')
+            sqlite_filename: config.sqlite_filename || process.env.ZYNITH_SQLITE_FILENAME || (__dirname + '/../zynith.sqlite')
         }
+
+        console.log('Zynith config:', this.config)
 
         this.database = new DatabaseConnection({
             sqlite_filename: this.config.sqlite_filename,

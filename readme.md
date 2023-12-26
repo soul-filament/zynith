@@ -1,3 +1,3 @@
 # Zynith
 
-WIP PACKGE
+Initial release wip still
