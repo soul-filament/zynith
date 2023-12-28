@@ -1,100 +1,100 @@
-import { Card, Label, Spinner, TextInput, Button } from 'flowbite-react';
-import { FC, useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
-import { useRecoilValue } from 'recoil';
-import { BucketsAtom, ServerAction, TransactionsAtom } from '../state/store';
-import { WebsocketContext } from '../state/data-connection';
-import { getIconsByName } from './_old/icons';
+import { FC, useState } from 'react';
 import { FilterRef } from './filter-ref';
 import { TrashIcon } from '@heroicons/react/20/solid';
+import { Icon } from '../componenets/icons';
+import { TransactionRecord } from '../../database/schema/transaction';
+import { useAllBuckets, useCreateFilter, useModifyTransactions } from '../state/hooks';
+import { KeyValueCard } from '../componenets/key-value-card';
+import { Button } from '../componenets/button';
+import { InputBox } from '../componenets/input';
+import { Spinner } from '../componenets/spinner';
+import { BucketRef } from './bucket-ref';
 
 interface TransactionSorter {
-    transactionId: string
+    transaction: TransactionRecord
 }
 
-export const SortTransaction : FC<TransactionSorter> = ({ transactionId }) => {
+export const SortTransaction : FC<TransactionSorter> = ({ transaction }) => {
 
-    const nav = useNavigate();
+    const buckets = useAllBuckets()
+    const currentBucket = buckets[transaction.bucketRef!]
+    const api = useModifyTransactions()
 
-    const websocket = useContext(WebsocketContext);
-
-    const transaction = useRecoilValue(TransactionsAtom)[transactionId];
-    const allBuckets = useRecoilValue(BucketsAtom);
-
-    const [filterText, setFilterText] = useState('')
-
-    useEffect(() => {
-        websocket.send(ServerAction.requestTransactionById, { id: transactionId })
-        websocket.send(ServerAction.requestAllBuckets)
-    }, [])
-
-    useEffect(() => {
-        if (transaction) {
-            setFilterText(transaction.description)
-        }
-    }, [transaction])
-
+    const [filterText, setFilterText] = useState(transaction.description)
+    const {createFilter} = useCreateFilter()
+    
+    const removeFilter = () => api.update({ ...transaction, filterRef: undefined })
     const assignToBucket = (bucketId?: string) => {
-        websocket.send(ServerAction.requestUpdateTransactionById, { id: transactionId, bucketRef: bucketId, label: transaction.label, filterRef: transaction.filterRef })
+        api.update({ ...transaction, bucketRef: bucketId })
+        removeFilter()
     }
 
-    const removeFilter = () => {
-        websocket.send(ServerAction.requestUpdateTransactionById, { id: transactionId, bucketRef: transaction.bucketRef, label: transaction.label, filterRef: undefined })
-    }
-
-    const createFilter = () => {
-        if (!transaction.bucketRef) return 
-        websocket.send(ServerAction.requestCreateFilter, { 
-            name: filterText,
-            label: transaction.label,
-            filter: filterText,
-            bucket: transaction.bucketRef,
-        })
-        setTimeout(() => {
-            websocket.send(ServerAction.requestTransactionById, { id: transactionId })
-            nav('/transactions')
-        }, 100)
-    }
-
-    if (!transaction) { return <Spinner /> }
+    if (!transaction || !currentBucket) { return <Spinner /> }
 
     return <>
-        <Card className="w-full shadow-none mb-4">
-            <Label className="">Assigned Bucket</Label>
-            <div className="flex flex-wrap gap-2">
+        <KeyValueCard
+            rows={[
                 {
-                    Object.values(allBuckets).map(bucket => {
-                        return <div 
-                            key={bucket.id}
-                            className={`p-2 flex gap-2 rounded-md border border-gray-200 cursor-pointer  font-xs ${bucket.id === transaction.bucketRef ? 'border-gray-500 bg-gray-200' : 'hover:bg-gray-100'}`} 
-                            onClick={() => assignToBucket(bucket.id)}>
-                            {getIconsByName(bucket.icon)}
-                            {bucket.name}
-                        </div>
-                    })   
-                }
-            </div>
-            <Label className="">Assigned Filter</Label>
-            <div className='flex'>
-                <FilterRef filterId={transaction.filterRef} />
+                    'Current Bucket': <div className='flex gap-2 py-2'>
+                        <BucketRef bucketId={transaction.bucketRef} />
+                    </div>,
+                },
                 {
-                    transaction.filterRef &&
-                    <div className="ml-4 flex p-1 gap-2 cursor-pointer"  onClick={removeFilter}>
-                        <TrashIcon className="w-5 h-5 text-gray-500 hover:text-red-500 " />
+                    'Assign Bucket': (
+                        <div className="flex flex-wrap gap-2 py-4">
+                        {
+                            Object.values(buckets).map(bucket => {
+                                return <div 
+                                    key={bucket.id}
+                                    className={`p-1 px-2 flex gap-2 rounded-md border border-transparent hover:border-gray-200 cursor-pointer font-xs ${bucket.id === transaction.bucketRef ? 'border-gray-500 bg-gray-200' : 'hover:bg-gray-100'}`} 
+                                    onClick={() => assignToBucket(bucket.id)}>
+                                        <div className="scale-70">
+                                            <Icon name={bucket.icon} />
+                                        </div>
+                                    {bucket.name}
+                                </div>
+                            })   
+                        }
                     </div>
+                    )
+                },
+                {
+                    'Applied Filter': (
+                        <div className='flex gap-2 py-2'>
+                            <FilterRef filterId={transaction.filterRef} />
+                            {
+                                transaction.filterRef &&
+                                <div className="ml-4 flex p-1 gap-2 cursor-pointer"  onClick={removeFilter}>
+                                    <TrashIcon className="w-5 h-5 text-gray-500 hover:text-red-500 " />
+                                </div>
+                            }
+                        </div>
+                    )
+                },
+                {
+                    'CreateFilter': (
+                        <div className="flex gap-2">
+                            <InputBox
+                                value={filterText}
+                                onChange={(e) => setFilterText(e)}
+                            />
+                            <div className="py-2">
+                                <Button 
+                                    onClick={() => {
+                                        createFilter({
+                                            label: filterText,
+                                            bucket: transaction.bucketRef,
+                                            filter: filterText
+                                        }, transaction)}
+                                    } 
+                                    text='Create'
+                                />
+                            </div>
+                        </div>
+                    )
                 }
-            </div>
-
-            <Label className="">Create Similar Filter</Label>
-            <div className='flex'>
-                <TextInput
-                    className="w-[300px]"
-                    value={filterText}
-                    onChange={(e) => setFilterText(e.target.value)}
-                />
-                <Button className="ml-2" outline gradientDuoTone='purpleToBlue' onClick={createFilter}>Create Filter</Button>
-            </div>
-        </Card>
+            ]}
+        />
     </>
 
 }

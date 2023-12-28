@@ -1,37 +1,31 @@
-import { useRecoilValue } from "recoil";
-import { PageTitle } from "../widgets/page-title";
+import { PageTitle, SectionTitle } from "../componenets/titles";
 import { SortTransaction } from "../widgets/sort-transaction";
-import { TransactionDisplayed } from "../widgets/_old/transaction-displayed";
-import { ServerAction, TransactionsAtom, TransactionsByRelationAtom } from "../state/store";
-import { useContext, useEffect } from "react";
-import { WebsocketContext } from "../state/data-connection";
-import { TransactionsTable } from "../widgets/transactions-table";
+import { TransactionDisplayed } from "../widgets/records/transaction-displayed";
+import { TransactionsTable } from "../widgets/tables/transactions-table";
+import { Spinner } from "../componenets/spinner";
+import { idFromPage } from "../utils";
+import { useTransactionById } from "../state/hooks";
 
 export function TransactionByIdPage () {
     
-    const transactionId = window.location.pathname.split('/').pop() as string;
-    const transaction = useRecoilValue(TransactionsAtom)[transactionId];
+    const transactionId = idFromPage()
+    const {transaction, otherSimilar} = useTransactionById(transactionId)
 
-    const websocket = useContext(WebsocketContext);
-    const otherSimilar = useRecoilValue(TransactionsByRelationAtom)[transaction?.description || ''] || []
-
-    useEffect(() => {
-        websocket.send(ServerAction.requestTransactionById, { id: transactionId })
-    }, [])
-
-    useEffect(() => {
-        if (transaction) 
-            websocket.send(ServerAction.requestTransactionsByDescription, { description: transaction.description  })
-    }, [transaction])
+    if (!transaction) return <Spinner />
 
     return <>
         <PageTitle title="Viewing Transaction"/>
-        <TransactionDisplayed transactionId={transactionId} />
 
-        <PageTitle title="Assign To Bucket / Filter"/>
-        <SortTransaction transactionId={transactionId} />
+        <SectionTitle title="Transaction Details"/>
+        <TransactionDisplayed transaction={transaction} />
+        <div className="h-10"></div>
 
-        <PageTitle title="Other Similar Transactions"/>
+        <SectionTitle title="Assign To Bucket"/>
+        <SortTransaction transaction={transaction} />
+        <div className="h-10"></div>
+
+        <SectionTitle title="All Transactions Like This"/>
         <TransactionsTable transactions={otherSimilar} />
+        <div className="h-10"></div>
     </>
 }

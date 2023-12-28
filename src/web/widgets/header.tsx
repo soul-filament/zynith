@@ -19,7 +19,7 @@ export default function PageHeader () {
         const isActive = currentPath === item.href;
         const className = isActive ? 'bg-gradient-to-r from-pink-600 via-indigo-500 to-cyan-400 inline-block text-transparent bg-clip-text' : 'hover:bg-gray-200 rounded';
         return (
-            <Link  key={item.name} 
+            <Link key={item.name} 
                 className={`${className} font-semibold px-2 py-1 text-sm font-medium`} 
                 to={item.href}>
 

@@ -5,6 +5,7 @@ import { createSourceTable } from "./source"
 import { createTransactionTable } from "./transaction"
 import { createBalanceTable } from "./balance"
 import { createAllocationTable } from "./allocation"
+import { createSettingsTable } from "./settings"
 
 export type ID = string
 export type Timestamp = string
@@ -17,4 +18,5 @@ export async function buildDatabaseTables (database: DatabaseConnection) {
     await createFilterTable(database)
     await createBalanceTable(database)
     await createAllocationTable(database)
+    await createSettingsTable(database)
 }

@@ -1,42 +1,37 @@
-import { useRecoilValue } from "recoil"
-import { Button } from "flowbite-react"
-import { BucketsAtom, ServerAction } from "../state/store"
-import { BucketRendered } from "../widgets/bucket-rendered"
-import { WebsocketContext } from "../state/data-connection"
-import { useContext, useEffect } from "react"
-import { PageTitle } from "../widgets/page-title"
+import { BucketRendered } from "../widgets/records/bucket-rendered"
+import { PageTitle, SectionTitle } from "../componenets/titles"
+import { useModifyBuckets } from "../state/hooks"
+import { Button, MultiChoiceButton } from "../componenets/button";
+import { useState } from "react";
+import { BucketsTable } from "../widgets/tables/buckets-table";
 
 export function BucketsPage () {
 
-    const websocket = useContext(WebsocketContext);
-    const bucketMap = useRecoilValue(BucketsAtom)
-    const buckets = Object.values(bucketMap)
-    const bucketsWithoutParents = buckets.filter(bucket => !bucket.parent)
-
-    useEffect(() => websocket.send(ServerAction.requestAllBuckets), [])
-
-    const doAddBucket = () => {
-        console.log('doAddBucket')
-        websocket.send(ServerAction.requestCreateBucket, { 
-            name: "New Bucket - " + Math.random().toString(36).substring(7),
-            icon: undefined,
-            parentBucketRef: undefined
-        })
-    }
+    const {bucketsWithoutParents, buckets, ...bucketsApi} = useModifyBuckets();
+    const [displayMode, setDisplayMode] = useState("table")
 
     return <>
         <PageTitle title="Buckets">
             <Button 
-                className='capitalize' 
-                color="gray" 
-                size={"sm"} 
-                gradientDuoTone={'purpleToBlue'} 
-                onClick={doAddBucket}>
-                    Create Bucket
-            </Button>
+                onClick={() => bucketsApi.create()}
+                text="Create Bucket"
+            />
         </PageTitle>
+
+        <SectionTitle title="Your buckets">
+            <MultiChoiceButton  
+                options={["table", "list"]}
+                selected={displayMode}
+                onSelect={setDisplayMode}  
+            />
+        </SectionTitle>
         {
+            displayMode === 'list' &&
             bucketsWithoutParents.map(bucket => <BucketRendered key={bucket.id} bucketId={bucket.id} />)
+        }
+        {
+            displayMode === 'table' &&
+            <BucketsTable buckets={buckets} />
         }
         {
             bucketsWithoutParents.length === 0 && <div className="text-gray-500 text-sm mt-4 px-4">No buckets yet</div>

@@ -1,11 +1,10 @@
-const globalStart = new Date("2021-12-01");
 const globalEnd = new Date()
 
 export class DataAggregator {
 
     private dayBuckets: {[key: string]: number} = {};
 
-    constructor() {}
+    constructor(private globalStart : Date) {}
 
     private cleanDate(date: Date) {
         return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -122,7 +121,7 @@ export class DataAggregator {
     }
 
     public exportData() {
-        let days = this.getDaysBetween(globalStart);
+        let days = this.getDaysBetween(this.globalStart);
         let data = [];
         for (let day of days) {
             const dayString = this.cleanDateToString(day);
@@ -135,7 +134,7 @@ export class DataAggregator {
     }
 
     public sumData() {
-        let days = this.getDaysBetween(globalStart);
+        let days = this.getDaysBetween(this.globalStart);
         let sum = 0;
         for (let day of days) {
             const dayString = this.cleanDateToString(day);
@@ -145,7 +144,7 @@ export class DataAggregator {
     }
 
     public exportDataMonthly() {
-        let days = this.getDaysBetween(globalStart);
+        let days = this.getDaysBetween(this.globalStart);
         let data = [];
         let currentMonth = days[0].getMonth();
         let currentMonthTotal = 0;
@@ -166,8 +165,8 @@ export class DataAggregator {
     }
 
     public exportRunningSum() : DataAggregator {
-        const aggregator = new DataAggregator();
-        let days = this.getDaysBetween(globalStart);
+        const aggregator = new DataAggregator(this.globalStart);
+        let days = this.getDaysBetween(this.globalStart);
         let runningSum = 0;
         for (let day of days) {
             const dayString = day.toISOString();

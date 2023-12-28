@@ -1,37 +1,26 @@
-import { useRecoilValue } from "recoil"
-import { Spinner } from "flowbite-react"
-import {  FiltersAtom, ServerAction, TransactionsByRelationAtom } from "../state/store"
-import { WebsocketContext } from "../state/data-connection"
-import { useContext, useEffect } from "react"
-import { TransactionsTable } from "../widgets/transactions-table"
-import { FilterDisplayed } from "../widgets/_old/filter-displayed"
-import { PageTitle } from "../widgets/page-title"
+import { TransactionsTable } from "../widgets/tables/transactions-table"
+import { FilterDisplayed } from "../widgets/records/filter-displayed"
+import { PageTitle, SectionTitle } from "../componenets/titles"
+import { idFromPage } from "../utils"
+import { useFilterById } from "../state/hooks"
+import { Spinner } from "../componenets/spinner"
 
 export function FilterById () {
 
-    const websocket = useContext(WebsocketContext);
-    const filters = useRecoilValue(FiltersAtom)
-    const filterId = window.location.pathname.split('/').pop()!
-    const filter = filters[filterId]
-    const transactionByFilter = useRecoilValue(TransactionsByRelationAtom)[filterId]
+    const filterId = idFromPage()
+    const {filter, transactionByFilter} = useFilterById(filterId)
 
-    useEffect(() => {
-        websocket.send(ServerAction.requestFilter, { id: filterId })
-        websocket.send(ServerAction.requestTransactionsByFilter, { id: filterId })
-    }, [])
-
-    if (!filter || !transactionByFilter) {
-        return <Spinner />
-    }
+    if (!filter || !transactionByFilter) return <Spinner />
 
     return <>
-        <PageTitle title={`Filter ${filter.label || filter.filter}`} />       
-        <FilterDisplayed Filter={filter} />
+        <PageTitle title={`Filter ${filter.label || filter.filter}`} />    
 
-        <PageTitle title="Transactions sorted" />
-        <TransactionsTable 
-            transactions={transactionByFilter} 
-        />
+        <SectionTitle title="Filter details" />   
+        <FilterDisplayed Filter={filter} />
+        <div className="h-10"></div>
+
+        <SectionTitle title="Transactions Assigned to Filter" />
+        <TransactionsTable transactions={transactionByFilter} />
     </>
 
 }

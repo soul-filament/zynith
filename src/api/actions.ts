@@ -4,6 +4,11 @@ export enum ServerAction {
     requestRunSQL = 'requestRunSQL',
     provideRunSQL = 'provideRunSQL',
 
+    // Settings
+    requestUpdateSettings = 'setSettings',
+    requestSettings = 'requestSettings',
+    provideSettings = 'provideSettings',
+
     // Transaction records
     requestTransactionById = 'requestTransactionById',
     requestAllTransactions = 'requestAllTransactions',
@@ -30,6 +35,7 @@ export enum ServerAction {
     requestFilter = 'requestFilter',
     requestAllFilters = 'requestAllFilters',
     requestCreateFilter = 'requestCreateFilter',
+    requestUpdateFilter = 'requestUpdateFilter',
     requestDeleteFilter = 'requestDeleteFilter',
     provideFilters = 'provideFilters',
 
@@ -53,4 +59,6 @@ export enum ServerAction {
     // Balances
     requestBalances = 'requestBalances',
     provideBalances = 'provideBalances',
+
 }
+

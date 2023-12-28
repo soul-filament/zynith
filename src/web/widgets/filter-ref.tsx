@@ -1,10 +1,10 @@
 import { useContext, useEffect } from "react";
-import { Spinner } from "flowbite-react";
 import { WebsocketContext } from "../state/data-connection";
 import { useRecoilValue } from "recoil";
 import { FiltersAtom, ServerAction } from "../state/store";
 import { useNavigate } from "react-router-dom";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
+import { Spinner } from "../componenets/spinner";
 
 export function FilterRef ({ filterId }: { filterId?: string }) {
     const nav = useNavigate();

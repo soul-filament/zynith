@@ -3,6 +3,7 @@ import { BalanceHandlers } from "./balance";
 import { BucketHandlers } from "./bucket";
 import { CalculationsHandler } from "./calculations";
 import { FilterHandlers } from "./filters";
+import { SettingsHandlers } from "./settings";
 import { SourceHandlers } from "./source";
 import { TransactionHandlers } from "./transactions";
 
@@ -13,5 +14,6 @@ export interface ApiHandlers {
     buckets: BucketHandlers,
     filters: FilterHandlers,
     sources: SourceHandlers,
-    calculate: CalculationsHandler
+    calculate: CalculationsHandler,
+    settings: SettingsHandlers
 }

@@ -2,8 +2,8 @@ import { useRecoilValue } from "recoil"
 import { FiltersAtom, ServerAction } from "../state/store"
 import { WebsocketContext } from "../state/data-connection"
 import { useContext, useEffect } from "react"
-import { FiltersTable } from "../widgets/filters-table"
-import { PageTitle } from "../widgets/page-title"
+import { FiltersTable } from "../widgets/tables/filters-table"
+import { PageTitle } from "../componenets/titles"
 
 export function FiltersPage () {
 

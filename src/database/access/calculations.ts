@@ -1,6 +1,7 @@
 import { DataAggregator } from "../dataAggregator";
 import { AllocationRecord } from "../schema/allocation";
 import { BucketRecord } from "../schema/bucket";
+import { SettingRecord } from "../schema/settings";
 import { TransactionRecord } from "../schema/transaction";
 import { DatabaseConnection } from "../sqlite";
 
@@ -10,9 +11,11 @@ export class CalculationsHandler {
 
     async CalculateallocationByDayForBucket (bucket: string) {
 
+        let settings = await this.connection.get<SettingRecord>('SELECT * FROM settings where id = "global"')
+
         // Where to put results
-        const aggregator: DataAggregator = new DataAggregator();
-        const combinedAggregator: DataAggregator = new DataAggregator();
+        const aggregator: DataAggregator = new DataAggregator(new Date(settings.globalStartDate));
+        const combinedAggregator: DataAggregator = new DataAggregator(new Date(settings.globalStartDate));
         
         // What was directly assigned to this bucket
         const directallocations = await this.connection.all<AllocationRecord>("SELECT * FROM allocations WHERE targetBucket = ?", [bucket]);
@@ -41,9 +44,11 @@ export class CalculationsHandler {
 
     async CalcualateSpendingByDayForBucket (bucket: string) {
 
+        let settings = await this.connection.get<SettingRecord>('SELECT * FROM settings where id = "global"')
+
         // Where to put results
-        const aggregator: DataAggregator = new DataAggregator();
-        const combinedAggregator: DataAggregator = new DataAggregator();
+        const aggregator: DataAggregator = new DataAggregator(new Date(settings.globalStartDate));
+        const combinedAggregator: DataAggregator = new DataAggregator(new Date(settings.globalStartDate));
         
         // What was directly assigned to this bucket
         const directTransactions = await this.connection.all<TransactionRecord>("SELECT * FROM transactions WHERE bucketRef = ?", [bucket]);

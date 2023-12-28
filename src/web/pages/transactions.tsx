@@ -1,22 +1,18 @@
-import { useRecoilValue } from "recoil";
-import { ServerAction, TransactionsAtom } from "../state/store";
-import { useContext, useEffect, useState } from "react";
-import { WebsocketContext } from "../state/data-connection";
-import { TransactionsTable } from "../widgets/transactions-table";
+import { useEffect, useState } from "react";
+import { TransactionsTable } from "../widgets/tables/transactions-table";
 import { TransactionRecord } from "../../database/schema/transaction";
-import { PageTitle } from "../widgets/page-title";
-import { MultiChoiceButton } from "../widgets/multi-choice-buttons";
+import { PageTitle, SectionTitle } from "../componenets/titles";
+import { MultiChoiceButton } from "../componenets/button";
+import { useAllTransactions } from "../state/hooks";
 
 export function TransactionsPage () {
     
-    const websocket = useContext(WebsocketContext);
-    const transactions = useRecoilValue(TransactionsAtom);
-
+    const transactions = useAllTransactions();
     const [selection, setSelection] = useState('unsorted');
     const [renderedTransactions, setRenderedTransactions] = useState([] as TransactionRecord[]);
 
     useEffect(() => {
-        if (selection === 'month') {
+        if (selection === 'this month') {
 
             const now = new Date();
             const month = now.getMonth();
@@ -43,18 +39,16 @@ export function TransactionsPage () {
         }
     }, [selection, transactions])
 
-    useEffect(() => {
-        websocket.send(ServerAction.requestAllTransactions)
-    }, [])
-
     return <>
-        <PageTitle title={`Transactions (${renderedTransactions.length})`}>
+        <PageTitle title={`Transactions`} />
+
+        <SectionTitle title={`Transactions (${renderedTransactions.length})`}>
             <MultiChoiceButton
-                options={['month', 'all', 'unsorted']}
-                selected={selection}
-                onSelect={setSelection}
-            />
-        </PageTitle>
+                    options={['this month', 'all', 'unsorted']}
+                    selected={selection}
+                    onSelect={setSelection}
+                />
+        </SectionTitle>
         <TransactionsTable transactions={renderedTransactions} />
     </>
 }

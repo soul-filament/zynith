@@ -1,64 +1,41 @@
-import { useContext, useEffect, useMemo, useState } from "react";
-import { Spinner } from "flowbite-react";
-import { WebsocketContext } from "../state/data-connection";
-import { useRecoilValue } from "recoil";
-import { useNavigate } from "react-router-dom";
-import { BucketDisplayed } from "../widgets/bucket-displayed";
+import { useMemo, useState } from "react";
+import { BucketDisplayed } from "../widgets/records/bucket-displayed";
 import { TimeAxisLineChart } from "../widgets/chart";
-import { TransactionsTable } from "../widgets/transactions-table";
-import { AllocationsTable } from "../widgets/allocations-table";
+import { TransactionsTable } from "../widgets/tables/transactions-table";
+import { AllocationsTableForBucket } from "../widgets/tables/allocations-table";
 import { DataAggregator } from "../../database/dataAggregator";
-import { AllocationsByRelationAtom, BucketsAtom, CalculationsByBucketAtom, FilterByRelationAtom, FiltersAtom, ServerAction, TransactionsByRelationAtom } from "../state/store";
-import { PageTitle } from "../widgets/page-title";
-import { FiltersTable } from "../widgets/filters-table";
-import { MultiChoiceButton } from "../widgets/multi-choice-buttons";
+import { PageTitle, SectionTitle } from "../componenets/titles";
+import { FiltersTable } from "../widgets/tables/filters-table";
+import { MultiChoiceButton } from "../componenets/button";
+import { useInfoByBucket, useModifySettings } from "../state/hooks";
+import { idFromPage } from "../utils";
+import { Spinner } from "../componenets/spinner";
 
 export function BucketByIdPage () {
     
-    useNavigate();
-
-    const bucketId = window.location.pathname.split('/').pop() as string;
-    const websocket = useContext(WebsocketContext);
-
-    const bucketMap = useRecoilValue(BucketsAtom)
-    const bucket = bucketMap[bucketId]
-    const calculations = useRecoilValue(CalculationsByBucketAtom)[bucketId]
-    const allocation = useRecoilValue(AllocationsByRelationAtom)[bucketId];
-    
-    const transactionsByBucket = useRecoilValue(TransactionsByRelationAtom)
-    const transactions = transactionsByBucket[bucketId] || []
-    const allFilters = useRecoilValue(FiltersAtom)
-    const filtersByBucket = useRecoilValue(FilterByRelationAtom)
-    const filters = filtersByBucket[bucketId] || []
+    const bucketId = idFromPage();
+    const {calculations, transactions, filters, bucket, allocations, unloaded, childBuckets} = useInfoByBucket(bucketId)
+    const {settings} = useModifySettings()
 
     const [shownGraph, setShownGraph] = useState('spending')
 
-    useEffect(() => websocket.send(ServerAction.requestAllBuckets), [])
-    useEffect(() => websocket.send(ServerAction.requestBucketById, {id: bucketId}), [])
-    useEffect(() => websocket.send(ServerAction.requestCalculateByBucket, {id: bucketId}), [bucket, allocation])
-    useEffect(() => websocket.send(ServerAction.requestTransactionsByBucket, {id: bucketId}), [])
-    useEffect(() => websocket.send(ServerAction.requestFiltersByBucket, {id: bucketId}), [allFilters])
-    useEffect(() => websocket.send(ServerAction.requestAllFilters, {id: bucketId}), [])
-
     const accumulation = useMemo(() => {
 
-        if (!calculations) return {
-            Cumulative: [],
-            Direct: []
-        }
+        let empty : any= { Direct: [] }
+        if (childBuckets.length !== 0) empty.Cumulative = []
+        
+        if (unloaded) return { Cumulative: [], Direct: []}
 
         let {spending, allocations} = calculations;
 
-        let spendingCumulitave = new DataAggregator()
+        let spendingCumulitave = new DataAggregator(new Date(settings.globalStartDate))
         spendingCumulitave.selfAddDataRaw(spending.CumulativeSpending)
-
-        let spendingDirect = new DataAggregator()
+        let spendingDirect = new DataAggregator(new Date(settings.globalStartDate))
         spendingDirect.selfAddDataRaw(spending.DirectSpending)
         
-        let allotmentCumulative = new DataAggregator()
+        let allotmentCumulative = new DataAggregator(new Date(settings.globalStartDate))
         allotmentCumulative.selfAddDataRaw(allocations.Cumulativeallocations)
-
-        let allotmentDirect = new DataAggregator()
+        let allotmentDirect = new DataAggregator(new Date(settings.globalStartDate))
         allotmentDirect.selfAddDataRaw(allocations.Directallocations)
 
         let balanceCumulative = allotmentCumulative
@@ -70,55 +47,49 @@ export function BucketByIdPage () {
             .exportRunningSum()
 
 
-        return {
-            Cumulative: balanceCumulative.exportData(),
-            Direct: balanceDirect.exportData()
-        }
+        let result: any = { Direct: balanceDirect.exportData() }
+        if (childBuckets.length !== 0) result.Cumulative = balanceCumulative.exportData()
 
+        return result
+    }, [calculations, allocations, bucket])
 
-    }, [calculations, allocation, bucket])
-
-    if (!bucket || !calculations) return <Spinner />
+    if (unloaded) return <Spinner />
 
     return <>
-        <PageTitle title={`Bucket Overview: ${bucket.name}`}>
+        <PageTitle title={bucket.name} />
+        <SectionTitle title="Graphed" >
             <MultiChoiceButton
                 options={['spending', 'allocation', 'accumulation']}
                 selected={shownGraph}
                 onSelect={setShownGraph}
             />
-        </PageTitle>
+        </SectionTitle>
+
         {
             shownGraph === 'spending' && 
-            <TimeAxisLineChart
-                data={calculations.spending||[]}
-            />
+            <TimeAxisLineChart data={calculations.spending} />
         }
         {
             shownGraph === 'allocation' && 
-            <TimeAxisLineChart
-                preferedView="day"
-                data={calculations.allocations||[]}
-            />
+            <TimeAxisLineChart preferedView="day" data={calculations.allocations} />
         }
         {
             shownGraph === 'accumulation' && 
-            <TimeAxisLineChart
-                preferedView="day"
-                data={accumulation||{}}
-            />
+            <TimeAxisLineChart preferedView="day" data={accumulation} />
         }
-        
         <BucketDisplayed bucket={bucket} />
+        <div className="h-10"  />
+        
+        <AllocationsTableForBucket bucketId={bucketId} />
+        <div className="h-10"  />
 
-        <AllocationsTable bucketId={bucketId} />
+        <SectionTitle title={`Filters`} />
+        <FiltersTable filters={filters} />
+        <div className="h-10"  />
 
-        <PageTitle title={`Filters pointing to this bucket`} />
-        <FiltersTable hideBucket={true} filters={filters} />
-
-        <PageTitle title={`Transactions in this bucket`} />
+        <SectionTitle title={`Transactions`} />
         <TransactionsTable transactions={transactions} />
-
     </>
+
 
 }

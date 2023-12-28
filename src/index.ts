@@ -7,6 +7,7 @@ import { FilterHandlers } from "./database/access/filters"
 import { BucketHandlers } from "./database/access/bucket"
 import { SourceHandlers } from "./database/access/source"
 import { CalculationsHandler } from "./database/access/calculations"
+import { SettingsHandlers } from "./database/access/settings"
 
 interface ZynithConfig {
     sqlite_filename: string
@@ -38,6 +39,7 @@ export class Zynith {
             buckets: new BucketHandlers(this.database),    
             sources: new SourceHandlers(this.database),  
             calculate: new CalculationsHandler(this.database),      
+            settings: new SettingsHandlers(this.database),
         }
 
     }

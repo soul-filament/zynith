@@ -3,7 +3,6 @@ module.exports = {
   darkMode: ["class"],
   content: [
     './src/web/**/*.{ts,tsx}',
-    'node_modules/flowbite-react/**/*.{js,jsx,ts,tsx}',
 	],
   theme: {
     container: {
@@ -73,6 +72,5 @@ module.exports = {
   plugins: [
     require("tailwindcss-animate"),
     require('@tailwindcss/typography'),
-    require('flowbite/plugin')
   ],
 }

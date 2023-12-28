@@ -1,9 +1,7 @@
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { DataConnection } from "./state/data-connection";
 import { RecoilRoot } from "recoil";
-
-import { NoMatch } from "./pages/404";
 
 import "./index.css";
 import PageHeader from "./widgets/header";
@@ -29,8 +27,8 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
             <Route path="/filters" element={<FiltersPage />} />
             <Route path="/filter/:id" element={<FilterById />} />
             <Route path="/balance" element={<BalancesPage />} />            
-            <Route path="settings" element={<SettingsPage />} /> 
-            <Route path="*" element={<NoMatch />} />
+            <Route path="/settings" element={<SettingsPage />} /> 
+            <Route path="*" element={<Navigate to="/" />} />
           </Route>
         </Routes>
       </BrowserRouter>

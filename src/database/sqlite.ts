@@ -47,7 +47,7 @@ export class DatabaseConnection {
         })
     }
 
-    public async get<T> (statement: string, variables: any): Promise<T> {
+    public async get<T> (statement: string, variables: any = []): Promise<T> {
         return await new Promise<any>((resolve, reject) => {
             this.connection.get(statement, variables, (error: any, result: any) => {
                 if (error) { 

@@ -97,6 +97,10 @@ const Handlers: any = {
         const created = await zynith.api.filters.createFilter(request)
         send( ServerAction.provideFilters, {[created.id]: created})
     },
+    [ServerAction.requestUpdateFilter]: async (request: any, zynith: Zynith, send: respond) => {
+        const updated = await zynith.api.filters.updateFilter(request)
+        send( ServerAction.provideFilters, {[updated.id]: updated})
+    },
     [ServerAction.requestDeleteFilter]: async (request: any, zynith: Zynith, send: respond) => {
         await zynith.api.filters.deleteFilter(request.id)
         send( ServerAction.provideFilters, {[request.id]: 0})
@@ -156,7 +160,16 @@ const Handlers: any = {
     [ServerAction.requestBalances]: async (_: any, zynith: Zynith, send: respond) => {
         const allBalances = await zynith.api.ballances.computeBalances()
         send( ServerAction.provideBalances, allBalances)
-    }    
+    }    ,
+    [ServerAction.requestSettings]: async (_: any, zynith: Zynith, send: respond) => {
+        const settings = await zynith.api.settings.getSettings()
+        send( ServerAction.provideSettings, settings)
+    },
+    [ServerAction.requestUpdateSettings]: async (request: any, zynith: Zynith, send: respond) => {
+        await zynith.api.settings.setSettings(request)
+        const settings = await zynith.api.settings.getSettings()
+        send( ServerAction.provideSettings, settings)
+    },
 }
 
 export async function OnClientMessage (send: respond, message: ServerAction, data: any, zynith: Zynith){

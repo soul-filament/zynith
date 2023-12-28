@@ -1,19 +1,17 @@
-import { useRecoilValue } from "recoil"
-import { AllocationAtom, BucketsAtom, ServerAction, TransactionsAtom } from "../state/store"
-import { WebsocketContext } from "../state/data-connection"
-import { useContext, useEffect, useMemo } from "react"
-import { PageTitle } from "../widgets/page-title"
+import { PageTitle, SectionTitle } from "../componenets/titles"
 import { DataAggregator } from "../../database/dataAggregator"
 import { TimeAxisLineChart } from "../widgets/chart"
-import { Card, Label } from "flowbite-react"
+import { useAllAllocations, useAllBuckets, useAllTransactions, useModifySettings } from "../state/hooks"
+import { useMemo } from "react"
+import { KeyValueCard } from "../componenets/key-value-card"
 
 export function HomePage () {
 
-    const websocket = useContext(WebsocketContext)
-    const allAllocations = useRecoilValue(AllocationAtom)
-    const allBuckets = useRecoilValue(BucketsAtom)
-    const allTransactions = useRecoilValue(TransactionsAtom)
-
+    const allAllocations = useAllAllocations()
+    const allBuckets = useAllBuckets()
+    const allTransactions = useAllTransactions()
+    const {settings} = useModifySettings()
+    
     const addCommaToNumber = (x: number) => {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
@@ -35,7 +33,7 @@ export function HomePage () {
             }
 
             if (!data[bucket.name]) {
-                data[bucket.name] = new DataAggregator()
+                data[bucket.name] = new DataAggregator(new Date(settings.globalStartDate))
             }
 
             data[bucket.name].selfAddOnRange(
@@ -83,44 +81,24 @@ export function HomePage () {
 
     }, [allTransactions, allBuckets])
 
-
-    useEffect(() => {
-        websocket.send(ServerAction.requestAllAllocations)
-        websocket.send(ServerAction.requestAllBuckets)
-        websocket.send(ServerAction.requestAllTransactions)
-    }, [])
-
-    if (!allocationsResult.latest) return <></>
+    if (allocationsResult.latest === undefined) return <>No allocations</>
     
     return <>
-        <PageTitle title="Overview" />
-        <TimeAxisLineChart data={allocationsResult.rawData} type="stackedbar" preferedView="day"  />
-        <PageTitle title="Stats" />
-        <Card className="w-full shadow-none mb-10">
-            <div className='flex'>
-                <div style={{flex: 1}}>
-                    <Label className="font-semibold">Total Allocation</Label>
-                    <div>${addCommaToNumber(allocationsResult.totalSum!)}</div>
-                </div>
-                <div style={{flex: 1}}>
-                    <Label className="font-semibold">Latest Daily Allocation</Label>
-                    <div>${allocationsResult.latest}</div>
-                </div>
+        <PageTitle title="Financial Overview" />
 
-                <div style={{flex: 1}}>
-                    <Label className="font-semibold">Latest Monthly Allocation</Label>
-                    <div>${Math.round(allocationsResult.latest * 30)}</div>
-                </div>
-                <div style={{flex: 1}}>
-                    <Label className="font-semibold">Total Net Transactions</Label>
-                    <div>${addCommaToNumber(allTranstionsSum.totalNet)}</div>
-                </div>
-                <div style={{flex: 1}}>
-                    <Label className="font-semibold">Total Spend Transactions</Label>
-                    <div>${addCommaToNumber(allTranstionsSum.totalSpend)}</div>
-                </div>
-            </div>
-        </Card>
+        <SectionTitle title="Allocations" />
+        <TimeAxisLineChart data={allocationsResult.rawData} type="stackedbar" preferedView="day"  />
+
+        <SectionTitle title="Stats" />
+        <KeyValueCard rows={[
+            {
+                'Total Allocations': `$${addCommaToNumber(allocationsResult.totalSum!)}`,
+                'Latest Daily Allocation': `$${allocationsResult.latest}`,
+                'Latest Monthly Allocation': `$${Math.round(allocationsResult.latest * 30)}`,
+                'Total Net Transactions': `$${addCommaToNumber(allTranstionsSum.totalNet)}`,
+                'Total Spend Transactions': `$${addCommaToNumber(allTranstionsSum.totalSpend)}`
+            },
+        ]} />
     </>
 
 }

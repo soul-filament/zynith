@@ -55,6 +55,31 @@ export class FilterHandlers {
         await this.connection.run('UPDATE transactions SET filterRef = NULL, bucketRef = NULL, label = NULL WHERE filterRef = ?', [id])
     }
 
+    async updateFilter (filter: Partial<FilterRecord>): Promise<FilterRecord> {
+            
+        if (!filter.id) {
+            throw new Error('Missing required fields, id')
+        }
+
+        await this.connection.run(`
+            UPDATE filters SET label = ?
+            WHERE id = ?
+        `, [
+            filter.label,
+            filter.id,
+        ])
+
+        await this.connection.run(`
+            UPDATE transactions SET label = ?
+            WHERE filterRef = ?
+        `, [
+            filter.label,
+            filter.id,
+        ])
+
+        return await this.getFilterById(filter.id)
+    }
+
     async getTransactionsMatchingFilter (id: string): Promise<FilterRecord[]> {
         const filter = await this.getFilterById(id)
         

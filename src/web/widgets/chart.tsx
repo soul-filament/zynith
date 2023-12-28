@@ -3,6 +3,7 @@ import { FC, ReactNode, useState } from "react";
 import 'chartjs-adapter-moment'; 
 import { Bar } from "react-chartjs-2";
 import { DataAggregator } from "../../database/dataAggregator";
+import { useModifySettings } from "../state/hooks";
 
 ChartJS.register(ArcElement);
 ChartJS.register(LineElement);
@@ -42,6 +43,7 @@ interface TimeAxisLineChartProps {
 export const TimeAxisLineChart: FC<TimeAxisLineChartProps> = ({ data, scaleFactor, preferedView, type }) => {
 
     const [grouping, _] = useState(preferedView||'month')
+    const {settings} = useModifySettings()
 
     let minimumDate = new Date(0)
     let maximumDate = new Date()
@@ -72,7 +74,7 @@ export const TimeAxisLineChart: FC<TimeAxisLineChartProps> = ({ data, scaleFacto
             }))
         }
         else if (grouping === 'month') {
-            let aggregator = new DataAggregator()
+            let aggregator = new DataAggregator(new Date(settings.globalStartDate))
             aggregator.selfAddDataRaw(providedData)
             myResultData = aggregator.exportDataMonthly().map((d) => ({
                 x: new Date(d.date),

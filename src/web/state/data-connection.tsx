@@ -1,7 +1,7 @@
-import { Spinner } from "flowbite-react";
 import { FC, createContext, useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
-import { AllocationAtom, AllocationsByRelationAtom, BalancesAtom, BucketByRelationAtom, BucketsAtom, CalculationsByBucketAtom, FilterByRelationAtom, FiltersAtom, ServerAction, TransactionsAtom, TransactionsByRelationAtom, merge } from "./store";
+import { AllocationAtom, AllocationsByRelationAtom, BalancesAtom, BucketByRelationAtom, BucketsAtom, CalculationsByBucketAtom, FilterByRelationAtom, FiltersAtom, ServerAction, SettingsAtom, TransactionsAtom, TransactionsByRelationAtom, merge } from "./store";
+import { Spinner } from "../componenets/spinner";
 
 export const WebsocketContext = createContext<DataConnectionState>(undefined as any);
 
@@ -9,7 +9,7 @@ interface DataConnectionProps {
     children: React.ReactNode;
 }
 
-interface DataConnectionState {
+export interface DataConnectionState {
     send: (message: any, data?: any) => void;
 }
 
@@ -24,14 +24,13 @@ export const DataConnection: FC<DataConnectionProps> = ({ children }) => {
     const setBucketsAtom = useSetRecoilState(BucketsAtom)
     const setFiltersAtom = useSetRecoilState(FiltersAtom)
     const setAllocationAtom = useSetRecoilState(AllocationAtom)
-
     const setTransactionRelationAtom = useSetRecoilState(TransactionsByRelationAtom)
     const setBucketsRelationAtom = useSetRecoilState(BucketByRelationAtom)
     const setFiltersRelationAtom = useSetRecoilState(FilterByRelationAtom)
     const setAllocationsRelationsAtom = useSetRecoilState(AllocationsByRelationAtom)
-
     const setCalculationsByBucketIdAtom = useSetRecoilState(CalculationsByBucketAtom)
     const setBalancesByBucketIdAtom = useSetRecoilState(BalancesAtom)
+    const setSettingsAtom = useSetRecoilState(SettingsAtom)
 
     // handle incoming messages 
     const onMessageReceived : {[key: string]: (data: any) => void} = {
@@ -64,6 +63,9 @@ export const DataConnection: FC<DataConnectionProps> = ({ children }) => {
         ,
         [ServerAction.provideBalances]: (data: any) => 
             setBalancesByBucketIdAtom(prev => merge(prev, data))
+        ,
+        [ServerAction.provideSettings]: (data: any) => 
+            setSettingsAtom(prev => merge(prev, data))
         ,
     }
 

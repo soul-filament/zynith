@@ -1,5 +1,6 @@
 import { DataAggregator } from "../dataAggregator";
 import { BalanceRecord } from "../schema/balance";
+import { SettingRecord } from "../schema/settings";
 import { DatabaseConnection } from "../sqlite";
 import { hash } from "../utils";
 
@@ -41,19 +42,16 @@ export class BalanceHandlers {
 
     async computeBalances () {
         let allSources = await this.connection.all<BalanceRecord>('SELECT DISTINCT source FROM balances')
+        let settings = await this.connection.get<SettingRecord>('SELECT * FROM settings where id = "global"')
 
         let resultAggregators = {} as {[source: string]: any}
-        let all = new DataAggregator()
 
         for (let source of allSources) {
-            let aggregator = new DataAggregator()
+            let aggregator = new DataAggregator(new Date(settings.globalStartDate))
             let sourceBalances = await this.getBalanceBySource(source.source)
             aggregator.selfSetMultipleRangesRaw(sourceBalances)
-            all.selfAddAggregator(aggregator)
             resultAggregators[source.source] = aggregator.exportData()
         }
-
-        resultAggregators['all'] = all.exportData()
 
         return resultAggregators
     }

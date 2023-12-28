@@ -9,3 +9,8 @@ export function moneyString (amount: number){
   return sign + '$' + dollars + '.' + centsString
 
 }
+
+export function idFromPage () {
+    const parts = window.location.pathname.split('/')
+    return parts[parts.length - 1]
+}
