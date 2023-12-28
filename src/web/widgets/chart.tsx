@@ -95,7 +95,7 @@ export const TimeAxisLineChart: FC<TimeAxisLineChartProps> = ({ data, scaleFacto
     }
 
     return (
-        <div className="border rounded-md mb-10 blur-sm">
+        <div className="border rounded-md mb-10">
             <div className="p-4">
                 {
                     ( type == 'bar' || !type ) &&
